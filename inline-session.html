@@ -150,12 +150,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
 
       function onRequestSession() {
-        arStartedNeu = false;
         return navigator.xr.requestSession('immersive-vr').then((session) => {
           xrButton.setSession(session);
           // Set a flag on the session so we can differentiate it from the
           // inline session.
           session.isImmersive = true;
+          arStartedNeu = false;
           onSessionStarted(session);
 
         });
@@ -164,15 +164,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       function onRequestSessionNeu(){
         return navigator.xr.requestSession('immersive-ar').then((session) => {
           xrButtonNew.setSession(session);
-          arStartedNeu = true;
-          if (session.isImmersive && arStartedNeu) {
-            // When in 'immersive-ar' mode don't draw an opaque background because
-            // we want the real world to show through.
-            skybox.visible = false;
-          }
           // Set a flag on the session so we can differentiate it from the
           // inline session.
           session.isImmersive = true;
+          arStartedNeu = true;
           onSessionStarted(session);
         });
 
@@ -180,7 +175,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       function onSessionStarted(session) {
         session.addEventListener('end', onSessionEnded);
-
+        if (session.isImmersive && arStartedNeu) {
+          // When in 'immersive-ar' mode don't draw an opaque background because
+          // we want the real world to show through.
+          skybox.visible = false;
+        }
         if (!gl) {
           gl = createWebGLContext({
             xrCompatible: true
