@@ -158,21 +158,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           session.isImmersive = true;
           onSessionStarted(session);
 
-          if (session.isImmersive && arStartedNeu) {
-            // When in 'immersive-ar' mode don't draw an opaque background because
-            // we want the real world to show through.
-            skybox.visible = false;
-          }
         });
       }
 
       function onRequestSessionNeu(){
         return navigator.xr.requestSession('immersive-ar').then((session) => {
           xrButtonNew.setSession(session);
+          arStartedNeu = true;
+          if (session.isImmersive && arStartedNeu) {
+            // When in 'immersive-ar' mode don't draw an opaque background because
+            // we want the real world to show through.
+            skybox.visible = false;
+          }
           // Set a flag on the session so we can differentiate it from the
           // inline session.
           session.isImmersive = true;
-          arStartedNeu = true;
           onSessionStarted(session);
         });
 
