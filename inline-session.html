@@ -87,7 +87,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             inlineVerticalFieldOfView: radValue
           });
         }
-        
+
         // Set the label on the page
         let label = `Vertical FOV: ${value} degrees`;
         if (value == 90) {
@@ -110,6 +110,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let solarSystem = new Gltf2Node({url: 'media/gltf/space/space.gltf'});
       scene.addNode(solarSystem);
       scene.addNode(new SkyboxNode({url: 'media/textures/milky-way-4k.png'}));
+
       let skybox = new SkyboxNode({url: 'media/textures/milky-way-4k.png'});
       scene.addNode(skybox);
       let arStartedNeu;
@@ -126,8 +127,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           onRequestSession: onRequestSessionNeu,
           onEndSession: onEndSession,
           textEnterXRTitle: "START AR",
-          textXRNotFoundTitle: "AR NOT FOUND",
-          textExitXRTitle: "EXIT  AR",
+          textXRNotFoundTitle: "AR MOT FOUND",
+          textExitXRTitle: "EXIT AR"
         });
         document.querySelector('header').appendChild(xrButtonNew.domElement);
 
@@ -145,9 +146,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // Start up an inline session, which should always be supported on
           // browsers that support WebXR regardless of the available hardware.
           navigator.xr.requestSession('inline').then((session) => {
-            inlineSession = session;
+            session.isImersiv = true
+            arStartedNeu = false;
             onSessionStarted(session);
-            updateFov();
           });
         }
       }
@@ -158,7 +159,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // Set a flag on the session so we can differentiate it from the
           // inline session.
           session.isImmersive = true;
-          arStartedNeu = true;
+          arStartedNeu = false;
           onSessionStarted(session);
 
         });
@@ -178,11 +179,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       function onSessionStarted(session) {
         session.addEventListener('end', onSessionEnded);
+        session.addEventListener('end', onSessionEnded, onSessionEndedNeu)
         if (session.isImmersive && arStartedNeu) {
           // When in 'immersive-ar' mode don't draw an opaque background because
           // we want the real world to show through.
           skybox.visible = false;
         }
+
         if (!gl) {
           gl = createWebGLContext({
             xrCompatible: true
@@ -192,7 +195,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // canvas to the document, which will serve as the output surface for
           // the results of the inline session's rendering.
           document.body.appendChild(gl.canvas);
-          
+
           // The canvas is synced with the window size via CSS, but we still
           // need to update the width and height attributes in order to keep
           // the default framebuffer resolution in-sync.
@@ -211,7 +214,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
           scene.setRenderer(renderer);
         }
-        
+
         // WebGL layers for inline sessions won't allocate their own framebuffer,
         // which causes gl commands to naturally execute against the default
         // framebuffer while still using the canvas dimensions to compute
@@ -240,12 +243,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             }
           });
 
-          session.requestAnimationFrame(onXRFrame);
+          //session.requestAnimationFrame(onXRFrame);
         });
       }
 
       function onEndSession(session) {
         session.end();
+      }
+
+      function onSessionEndedNeu(event){
+        if(event.session.isImmersive){
+          xrButtonNew.setSession(null)
+        }
       }
 
       function onSessionEnded(event) {
