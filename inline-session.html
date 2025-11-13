@@ -39,9 +39,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           This sample demonstrates use of an 'inline' XRSession to present
           content on the page prior to entering XR presentation with an
           immersive session. The viewer pose can be adjusted by clicking and
-          dragging with mouse or touch.
-
-          DAS IST EIN TEST KANNST DU DAS LESEN?
+          dragging with mouse or touch. DAS IST EIN TEST KANNST DU DAS LESEN?
           <a class="back" href="./">Back</a>
           <p>
             <input id='vertFOV' value='90' min='30' max='150' step='10' type='range'/><br/>
@@ -109,11 +107,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let scene = new Scene();
       let solarSystem = new Gltf2Node({url: 'media/gltf/space/space.gltf'});
       scene.addNode(solarSystem);
-      scene.addNode(new SkyboxNode({url: 'media/textures/milky-way-4k.png'}));
 
       let skybox = new SkyboxNode({url: 'media/textures/milky-way-4k.png'});
       scene.addNode(skybox);
-      let arStartedNeu;
+      let arStartedNeu = false;
 
       function initXR() {
         console.log("wir sind in initXR");
@@ -146,9 +143,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // Start up an inline session, which should always be supported on
           // browsers that support WebXR regardless of the available hardware.
           navigator.xr.requestSession('inline').then((session) => {
-            session.isImersiv = true
-            arStartedNeu = false;
+            inlineSession = session;
             onSessionStarted(session);
+            updateFov();
           });
         }
       }
@@ -179,7 +176,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       function onSessionStarted(session) {
         session.addEventListener('end', onSessionEnded);
-        session.addEventListener('end', onSessionEnded, onSessionEndedNeu)
         if (session.isImmersive && arStartedNeu) {
           // When in 'immersive-ar' mode don't draw an opaque background because
           // we want the real world to show through.
@@ -233,17 +229,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             xrImmersiveRefSpace = refSpace;
           } else {
             xrInlineRefSpace = refSpace;
+            xrImmersiveRefSpace.addEventListener('reset', (evt) => {
+              if (evt.transform) {
+                // AR experiences typically should stay grounded to the real world.
+                // If there's a known origin shift, compensate for it here.
+                xrImmersiveRefSpace = xrImmersiveRefSpace.getOffsetReferenceSpace(evt.transform);
+              }
+            });
           }
-
-          xrImmersiveRefSpace.addEventListener('reset', (evt) => {
-            if (evt.transform) {
-              // AR experiences typically should stay grounded to the real world.
-              // If there's a known origin shift, compensate for it here.
-              xrImmersiveRefSpace = xrImmersiveRefSpace.getOffsetReferenceSpace(evt.transform);
-            }
-          });
-
-          //session.requestAnimationFrame(onXRFrame);
+          session.requestAnimationFrame(onXRFrame);
         });
       }
 
@@ -253,7 +247,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       function onSessionEndedNeu(event){
         if(event.session.isImmersive){
-          xrButtonNew.setSession(null)
+          xrButton.setSession(null);
+          xrButtonNew.setSession(null);
         }
       }
 
