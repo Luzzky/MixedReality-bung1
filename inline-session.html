@@ -107,7 +107,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let scene = new Scene();
       let solarSystem = new Gltf2Node({url: 'media/gltf/space/space.gltf'});
       scene.addNode(solarSystem);
-
       let skybox = new SkyboxNode({url: 'media/textures/milky-way-4k.png'});
       scene.addNode(skybox);
       let arStartedNeu = false;
@@ -124,7 +123,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           onRequestSession: onRequestSessionNeu,
           onEndSession: onEndSession,
           textEnterXRTitle: "START AR",
-          textXRNotFoundTitle: "AR MOT FOUND",
+          textXRNotFoundTitle: "AR NOT FOUND",
           textExitXRTitle: "EXIT AR"
         });
         document.querySelector('header').appendChild(xrButtonNew.domElement);
@@ -175,7 +174,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
 
       function onSessionStarted(session) {
-        session.addEventListener('end', onSessionEnded);
+        session.addEventListener('end', onSessionEnded, onSessionEndedNeu);
+
         if (session.isImmersive && arStartedNeu) {
           // When in 'immersive-ar' mode don't draw an opaque background because
           // we want the real world to show through.
